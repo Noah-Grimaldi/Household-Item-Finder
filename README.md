@@ -24,7 +24,7 @@ This is a tool for people who lose things in their home and end up buying a copy
 
 Clone the repository with --recurse-submodules so PySimpleGUI's older version will be included:
 
-`git clone --recurse-submodules https://github.com/Noah-Grimaldi/auto-gaming-montage-maker.git`
+`git clone --recurse-submodules https://github.com/Noah-Grimaldi/Household-Item-Finder.git`
 
 Run editor_gui.py, which programmatically references the other files.
 
