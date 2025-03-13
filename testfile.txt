@@ -1,0 +1,3 @@
+socks, home 1, closet, Drawer UL1
+plastic welder, home 1, bedroom, box under bed
+water bottle, home 1, kitchen, cabinet middle right first shelf
