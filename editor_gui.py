@@ -51,11 +51,8 @@ def search_for_item(query):
         try:
             for line in lines:
                 item_info = line.split(',')
-                try:
-                    if query.lower() == item_info[0].lower():
-                        query_matches.append(line)
-                except:
-                    continue
+                if query.lower() == item_info[0].lower():
+                    query_matches.append(line)
         except:
             return -1
     return query_matches
