@@ -44,7 +44,7 @@ def remove_item(line_user_removed):
 
 # Input is the search term - list that contains all matches - If nothing is found, returns -1
 def search_for_item(query):
-    with open("testfile.txt", 'r') as textfile:
+    with open("homes/testfile.txt", 'r') as textfile:
         lines = textfile.readlines()
         query_matches = []
         try:
@@ -163,3 +163,12 @@ while True:
         window["_LIST_"].update(retrieve_household_items())
     if event == sg.WINDOW_CLOSED:
         break
+    if event == "_INPUT_":
+        query = values["_INPUT_"]
+
+        if query:
+            matched_items = search_for_item(query)
+            window["_LIST_"].update(matched_items)
+        else:
+            window["_LIST_"].update(retrieve_household_items())
+
