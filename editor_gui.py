@@ -7,7 +7,6 @@ base64_image = b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAIGNIUk0AAHomAAC
 already_occured = False
 replace_this_home = ""
 
-
 if __name__ == '__main__':
     # Pyinstaller fix because ultralytics references differently
     multiprocessing.freeze_support()
@@ -42,7 +41,8 @@ def remove_item(line_user_removed):
         f.truncate()
         f.writelines(lines)
 
-#Input is the search term - list that contains all matches - If nothing is found, returns -1
+
+# Input is the search term - list that contains all matches - If nothing is found, returns -1
 def search_for_item(query):
     with open("testfile.txt", 'r') as textfile:
         lines = textfile.readlines()
@@ -55,6 +55,7 @@ def search_for_item(query):
         except:
             return -1
     return query_matches
+
 
 def amount_homes():
     with open("settings.txt", 'r') as textfile:
