@@ -42,8 +42,8 @@ def remove_item(line_user_removed):
         f.writelines(lines)
 
 
-# Input is the search term - list that contains all matches - If there is an error, returns -1
-def search_for_item(query):
+# Input is the search term - returns list that contains all matches - If there is an error, returns -1
+def search_for_item(item_query):
     with open("homes/testfile.txt", 'r') as textfile:
         lines = textfile.readlines()
         query_matches = []
@@ -89,7 +89,7 @@ layout1 = [
     [sg.Listbox(retrieve_household_items(), size=(40, 10), enable_events=True, key='_LIST_', horizontal_scroll=True)],
     [sg.Button("Remove Item", visible=False, button_color=('white', 'red'), key="removal")],
     [sg.Text("Add Home:"), sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_ADDHOME_')],
-    [sg.Text("Add Item:"), sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_ADDITEM_')]
+    [sg.Text("Add Item:"), sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_ADDITEM_')],
 ]
 
 layout2 = [
@@ -113,7 +113,7 @@ col3 = sg.Column(layout3, key="-COL3-", visible=False)
 layout = [[col1, col2, col3]]
 
 # Create the window
-window = sg.Window("Household Item Finder", layout, icon=base64_image, finalize=True)
+window = sg.Window("Household Item Finder", layout, icon=base64_image, finalize=True, resizable=True)
 
 if os.path.isfile("settings.txt"):
     window["-COL2-"].update(visible=False)
