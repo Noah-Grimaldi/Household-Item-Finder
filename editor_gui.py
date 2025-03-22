@@ -42,7 +42,7 @@ def remove_item(line_user_removed):
         f.writelines(lines)
 
 
-# Input is the search term - list that contains all matches - If nothing is found, returns -1
+# Input is the search term - list that contains all matches - If there is an error, returns -1
 def search_for_item(query):
     with open("homes/testfile.txt", 'r') as textfile:
         lines = textfile.readlines()
