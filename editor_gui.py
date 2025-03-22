@@ -50,7 +50,7 @@ def search_for_item(query):
         try:
             for line in lines:
                 item_info = line.split(',')
-                if query.lower() == item_info[0].lower():
+                if query.lower() in item_info[0].lower():
                     query_matches.append(line)
         except:
             return -1
@@ -163,6 +163,8 @@ while True:
         window["_LIST_"].update(retrieve_household_items())
     if event == sg.WINDOW_CLOSED:
         break
+
+    #Search bar input event
     if event == "_INPUT_":
         query = values["_INPUT_"]
 
