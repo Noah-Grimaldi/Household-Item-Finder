@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import os
 import multiprocessing
+import io
 
 run_next_thread = False
 base64_image = b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAH+UExURQAAAP87If87If87If87If87If87If87If87If87If87ISUjJFAlIe5sFiUjJCMgIfU5IP87If46IPI5IKszH7lxFf93Fv90Fv9xF+pbGsMzINQ2IaovH62jC//xANnNBZGID6yKEfmAE/d4FL9JG9s2IKaRDvPOA+/FBX5UF89EHe04IF9YFf/wAPjeAe/DBL2VENA/Iek6IH9bFv7wAPvlAcKeC7Z1Eug5IKNlFO3gAv7xAPniAfDTA8N6EYstIMyUDuvdAvPNBJF7EfZcGeE3IPmQEfnsAP7oAfjWAvC3B/C1B/CzCIYrIP49IP63Cv+7Cf++Cf/BCNjMBfvoAO/CBdWkCfxBH6EvH6+lC/faAr6bC/CJELkyIP9IL/5zFsi2B/zpAPTRA+m3C7tQKHVTT/7sAPDFBGtZFftJHvw8I/k6IIpCG9WtCHwtH5k7HczABvzsAO7CBYNsE+BYGbIxILUxIOc4IP6UEcq+B/3tAPjfAvjeAtzHBaOZDZZ7EIpDG/5AH+5IJFk/KzYyHaCWDfrjAfHKA3dEGtw/H+o4IU9JGP3sAOK7BquCENc1IO44IIpYGfvnAfnhAc6RDXEvHn9CHOLVBPTUA6yTDfVzFMw0IGknIOPRBPDJBFw8GuVBHtVaGcilCcKQDMEzIPlnGMGLDYU8HMYzIP///xk1TTUAAAARdFJOUwAMWp+/Hg+PLc/vBoP2ARovY7xO3wAAAAFiS0dEqScPBgQAAAAHdElNRQfnCw0WKRQEGPwCAAABjklEQVQ4y2NggANGJmYWQSBgYWZiZMAErMyCSICZFU2ajV0QDbCzIctzcApiAE4OJHkuuLCQMJzJxYFFXlBEVExcQlJKGlkFG5L5MrJyQCCvoKikrAK0BeIOJPepqslBgLqGphbIpWD/IeS1dUCSunJ6+gaGELeAfIvwv5ExSN7E1MzcAh4ewPBDGGBpJSdnbWNrZ4/kWUYGJjjbwREo7+Ts4oocGkwIG9xMwBa4e3h6efv4IuxggbL8/AMCg4JBSkJCw8LhJrAwIJsXEQlUEBUdE4skBlYQB2HHJ8jJJSYlp6BECZIJqWlAV6RnZGZhV5CdYy1nHZWbhx6pcEfmF8hZFxYVl5SWlSPLs8C8WVEJDISq6prauvoGZAXMsIBqbGpuabWWk2tr7+hEDSh4UHd1y8n19Pb1ozqBER5ZEybqTpo8ZSqaE5kR0T1t+oyZs2aj+4EVnmDmzJ03fwG6NCTBgJPcwkWLl2BIw5IcMNEuXbYcUxqRrLl5eFfgk2fg4xcgkHEIZz3CmRd39gcA0k9l8LbQyIEAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjMtMTEtMTNUMjI6NDE6MjArMDA6MDC1A2E6AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIzLTExLTEzVDIyOjQxOjIwKzAwOjAwxF7ZhgAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyMy0xMS0xM1QyMjo0MToyMCswMDowMJNL+FkAAAAASUVORK5CYII='
@@ -66,30 +67,39 @@ def amount_homes():
 
 def generate_list():
     homes_list = []
-    ignored_textfiles = ["settings.txt", "updated_names.txt", "requirements.txt"]
     for number in range(1, amount_homes() + 1):
         homes_list.append("Home " + str(number))
-    for files in os.listdir():
-        if files.endswith(".txt") and files not in ignored_textfiles:
-            print(files)
-            with open("updated_names.txt", 'r') as textfile:
-                content = textfile.read().splitlines()
-            textfile.close()
-            print(files)
-            homes_list[homes_list.index(content[content.index(files) - 1])] = files.replace(".txt", "")
-            print(homes_list)
+    with open("updated_names.txt", 'r') as textfile:
+        name_content = textfile.read().splitlines()
+        for name_lines in name_content:
+            try:
+                changed_home = homes_list[homes_list.index(name_lines)]
+                changed_name = name_content[name_content.index(changed_home) + 1]
+                homes_list[homes_list.index(changed_home)] = changed_name.replace(".txt", "")
+            except:
+                pass
     return homes_list
 
 
 sg.theme('Black')
+
+make_these_inputs_visible = [  # these are the inputs you need to make visible austin!
+    [sg.Text("Item Name:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMNAME_')],
+    [sg.Text("Item Home:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMHOME_')],
+    [sg.Text("Item Room:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMROOM_')],
+    [sg.Text("Item Storage Location:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMSTORED_')],
+    [sg.Button("Add Item", visible=False, button_color=('white', 'green'), key="NEWITEM")]
+]
 
 layout1 = [
     [sg.Text("Search Bar"), sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_INPUT_'),
      sg.Image("settingsImage.png", key="_SETTINGS_", enable_events=True)],
     [sg.Listbox(retrieve_household_items(), size=(40, 10), enable_events=True, key='_LIST_', horizontal_scroll=True)],
     [sg.Button("Remove Item", visible=False, button_color=('white', 'red'), key="removal")],
-    [sg.Text("Add Home:"), sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_ADDHOME_')],
-    [sg.Text("Add Item:"), sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_ADDITEM_')],
+    [sg.Text("Seeing Inventory for:"),
+     sg.Combo(generate_list(), readonly=True, enable_events=True, key="DROPDOWN_MENU2")],
+    [sg.Checkbox("Add Item", key='_ADDITEM_')],
+    [sg.Column(make_these_inputs_visible, visible=False)]  # Austin make this column visible when the checkbox above is ^ selected!
 ]
 
 layout2 = [
@@ -103,7 +113,7 @@ layout3 = [
     [sg.Text("How many homes/storage units do you have?:"),
      sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_NUMHOMES2_', default_text=amount_homes())],
     [sg.Text("Change home name for:"), sg.Combo(generate_list(), enable_events=True, key="DROPDOWN_MENU")],
-    [sg.Button('Save Changes', visible=True, key="SAVE_CHANGES")]
+    [sg.Button('Save Changes', visible=True, key="SAVE_CHANGES")]  # Noemi, this is the save changes button, when this is pressed, change the visibility of the layouts!
 ]
 
 col1 = sg.Column(layout1, key="-COL1-", visible=False)
@@ -140,7 +150,29 @@ while True:
         if replace_this_home.strip() == "":
             pass
         else:
-            print(values["DROPDOWN_MENU"])
+            with open("updated_names.txt", 'r+') as updated_names_file:
+                names_file_content = updated_names_file.readlines()
+                print(names_file_content)
+                print(replace_this_home)
+                try:
+                    try:
+                        check_home_index = names_file_content.index(replace_this_home + "\n")
+                        add_one_or_zero = 1
+                    except:
+                        check_home_index = names_file_content.index(replace_this_home + ".txt" + "\n")
+                        add_one_or_zero = 0
+                    print(check_home_index)
+                    names_file_content[check_home_index + add_one_or_zero] = values["DROPDOWN_MENU"] + ".txt" + "\n"
+                    updated_names_file.seek(0)
+                    updated_names_file.writelines(names_file_content)
+                    updated_names_file.truncate()
+                except:
+                    updated_names_file.seek(0, io.SEEK_END)
+                    updated_names_file.write(replace_this_home + "\n")
+                    updated_names_file.write(values["DROPDOWN_MENU"] + ".txt" + "\n")
+            window["DROPDOWN_MENU"].update(values=generate_list())
+            window["DROPDOWN_MENU2"].update(values=generate_list())
+        sg.popup_quick_message("Settings Saved!", background_color="green")
     if event == "_SETTINGS_":
         window["-COL1-"].update(visible=False)
         window["-COL3-"].update(visible=True)
@@ -164,7 +196,7 @@ while True:
     if event == sg.WINDOW_CLOSED:
         break
 
-    #Search bar input event
+    # Search bar input event
     if event == "_INPUT_":
         query = values["_INPUT_"]
 
@@ -173,4 +205,3 @@ while True:
             window["_LIST_"].update(matched_items)
         else:
             window["_LIST_"].update(retrieve_household_items())
-
