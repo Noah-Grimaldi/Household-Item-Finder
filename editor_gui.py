@@ -1,3 +1,5 @@
+from os import write
+
 import PySimpleGUI as sg
 import os
 import multiprocessing
@@ -57,6 +59,14 @@ def search_for_item(item_query):
             return -1
     return query_matches
 
+def add_item(new_item):
+    with open("homes/testfile.txt", 'a') as textfile:
+        try:
+            textfile.write("\n" + new_item)
+        except:
+            return -1
+    textfile.close()
+
 
 def amount_homes():
     with open("settings.txt", 'r') as textfile:
@@ -88,7 +98,7 @@ make_these_inputs_visible = [  # these are the inputs you need to make visible a
     [sg.Text("Item Home:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMHOME_')],
     [sg.Text("Item Room:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMROOM_')],
     [sg.Text("Item Storage Location:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMSTORED_')],
-    [sg.Button("Add Item", visible=False, button_color=('white', 'green'), key="NEWITEM")]
+    [sg.Button("Add Item", visible=True, button_color=('white', 'green'), key="NEWITEM")]
 ]
 
 layout1 = [
@@ -99,7 +109,7 @@ layout1 = [
     [sg.Text("Seeing Inventory for:"),
      sg.Combo(generate_list(), readonly=True, enable_events=True, key="DROPDOWN_MENU2")],
     [sg.Checkbox("Add Item", key='_ADDITEM_')],
-    [sg.Column(make_these_inputs_visible, visible=False)]  # Austin make this column visible when the checkbox above is ^ selected!
+    [sg.Column(make_these_inputs_visible, visible=True)]  # Austin make this column visible when the checkbox above is ^ selected!
 ]
 
 layout2 = [
@@ -205,3 +215,16 @@ while True:
             window["_LIST_"].update(matched_items)
         else:
             window["_LIST_"].update(retrieve_household_items())
+
+    # Adds new item to data text file uppon clicking the "Add Item" button
+    if event == "NEWITEM":
+        new_item_query = ", ".join([values["_ITEMNAME_"], values["_ITEMHOME_"], values["_ITEMROOM_"], values["_ITEMSTORED_"]])
+        try:
+            add_item(new_item_query)
+            # UI message that says item was added successfully
+        except:
+            write("MAJOR MALFUNCTION")
+            # UI message that says Item wasn't added
+
+
+
