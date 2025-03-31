@@ -1,6 +1,7 @@
 from email.policy import default
 from logging import exception
 from os import write
+from xml.etree.ElementTree import indent
 
 import PySimpleGUI as sg
 import os
@@ -98,9 +99,9 @@ def generate_list():
 sg.theme('Black')
 
 make_these_inputs_visible = [
-    [sg.Text("Item Name:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMNAME_')],
-    [sg.Text("Item Home:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMHOME_')],
-    [sg.Text("Item Room:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMROOM_')],
+    [sg.Text("Item Name:"), sg.Push(), sg.Input(size=(20, 1), enable_events=True, key='_ITEMNAME_')],
+    [sg.Text("Item Home:"), sg.Push(), sg.Input(size=(20, 1), enable_events=True, key='_ITEMHOME_')],
+    [sg.Text("Item Room:"), sg.Push(), sg.Input(size=(20, 1), enable_events=True, key='_ITEMROOM_')],
     [sg.Text("Item Storage Location:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMSTORED_')],
     [sg.Button("Add Item", visible=True, button_color=('white', 'green'), key="NEWITEM")]
 ]
