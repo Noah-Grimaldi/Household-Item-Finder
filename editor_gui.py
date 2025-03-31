@@ -150,10 +150,9 @@ while True:
         if replace_this_home.strip() == "":
             pass
         else:
+            concise_home_path = "homes/" + replace_this_home + ".txt"
             with open("updated_names.txt", 'r+') as updated_names_file:
                 names_file_content = updated_names_file.readlines()
-                print(names_file_content)
-                print(replace_this_home)
                 try:
                     try:
                         check_home_index = names_file_content.index(replace_this_home + "\n")
@@ -161,15 +160,22 @@ while True:
                     except:
                         check_home_index = names_file_content.index(replace_this_home + ".txt" + "\n")
                         add_one_or_zero = 0
-                    print(check_home_index)
                     names_file_content[check_home_index + add_one_or_zero] = values["DROPDOWN_MENU"] + ".txt" + "\n"
+                    change_filename_to = names_file_content[check_home_index + add_one_or_zero]
+                    print(change_filename_to)
+                    if os.path.isfile(concise_home_path):
+                        os.replace(concise_home_path, "homes/" + change_filename_to)
                     updated_names_file.seek(0)
                     updated_names_file.writelines(names_file_content)
                     updated_names_file.truncate()
+                    # TODO: some of this is malfunctioning- figure it out
                 except:
                     updated_names_file.seek(0, io.SEEK_END)
                     updated_names_file.write(replace_this_home + "\n")
                     updated_names_file.write(values["DROPDOWN_MENU"] + ".txt" + "\n")
+                    if os.path.isfile(concise_home_path):
+                        os.replace(concise_home_path, "homes/" + values["DROPDOWN_MENU"] + ".txt")
+            # change the name of the file to the new name!
             window["DROPDOWN_MENU"].update(values=generate_list())
             window["DROPDOWN_MENU2"].update(values=generate_list())
         sg.popup_quick_message("Settings Saved!", background_color="green")
