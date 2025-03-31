@@ -1,9 +1,13 @@
+from email.policy import default
+from logging import exception
 from os import write
 
 import PySimpleGUI as sg
 import os
 import multiprocessing
 import io
+
+from PySimpleGUI import popup_no_border
 
 run_next_thread = False
 base64_image = b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAH+UExURQAAAP87If87If87If87If87If87If87If87If87If87ISUjJFAlIe5sFiUjJCMgIfU5IP87If46IPI5IKszH7lxFf93Fv90Fv9xF+pbGsMzINQ2IaovH62jC//xANnNBZGID6yKEfmAE/d4FL9JG9s2IKaRDvPOA+/FBX5UF89EHe04IF9YFf/wAPjeAe/DBL2VENA/Iek6IH9bFv7wAPvlAcKeC7Z1Eug5IKNlFO3gAv7xAPniAfDTA8N6EYstIMyUDuvdAvPNBJF7EfZcGeE3IPmQEfnsAP7oAfjWAvC3B/C1B/CzCIYrIP49IP63Cv+7Cf++Cf/BCNjMBfvoAO/CBdWkCfxBH6EvH6+lC/faAr6bC/CJELkyIP9IL/5zFsi2B/zpAPTRA+m3C7tQKHVTT/7sAPDFBGtZFftJHvw8I/k6IIpCG9WtCHwtH5k7HczABvzsAO7CBYNsE+BYGbIxILUxIOc4IP6UEcq+B/3tAPjfAvjeAtzHBaOZDZZ7EIpDG/5AH+5IJFk/KzYyHaCWDfrjAfHKA3dEGtw/H+o4IU9JGP3sAOK7BquCENc1IO44IIpYGfvnAfnhAc6RDXEvHn9CHOLVBPTUA6yTDfVzFMw0IGknIOPRBPDJBFw8GuVBHtVaGcilCcKQDMEzIPlnGMGLDYU8HMYzIP///xk1TTUAAAARdFJOUwAMWp+/Hg+PLc/vBoP2ARovY7xO3wAAAAFiS0dEqScPBgQAAAAHdElNRQfnCw0WKRQEGPwCAAABjklEQVQ4y2NggANGJmYWQSBgYWZiZMAErMyCSICZFU2ajV0QDbCzIctzcApiAE4OJHkuuLCQMJzJxYFFXlBEVExcQlJKGlkFG5L5MrJyQCCvoKikrAK0BeIOJPepqslBgLqGphbIpWD/IeS1dUCSunJ6+gaGELeAfIvwv5ExSN7E1MzcAh4ewPBDGGBpJSdnbWNrZ4/kWUYGJjjbwREo7+Ts4oocGkwIG9xMwBa4e3h6efv4IuxggbL8/AMCg4JBSkJCw8LhJrAwIJsXEQlUEBUdE4skBlYQB2HHJ8jJJSYlp6BECZIJqWlAV6RnZGZhV5CdYy1nHZWbhx6pcEfmF8hZFxYVl5SWlSPLs8C8WVEJDISq6prauvoGZAXMsIBqbGpuabWWk2tr7+hEDSh4UHd1y8n19Pb1ozqBER5ZEybqTpo8ZSqaE5kR0T1t+oyZs2aj+4EVnmDmzJ03fwG6NCTBgJPcwkWLl2BIw5IcMNEuXbYcUxqRrLl5eFfgk2fg4xcgkHEIZz3CmRd39gcA0k9l8LbQyIEAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjMtMTEtMTNUMjI6NDE6MjArMDA6MDC1A2E6AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIzLTExLTEzVDIyOjQxOjIwKzAwOjAwxF7ZhgAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyMy0xMS0xM1QyMjo0MToyMCswMDowMJNL+FkAAAAASUVORK5CYII='
@@ -93,7 +97,7 @@ def generate_list():
 
 sg.theme('Black')
 
-make_these_inputs_visible = [  # these are the inputs you need to make visible austin!
+make_these_inputs_visible = [
     [sg.Text("Item Name:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMNAME_')],
     [sg.Text("Item Home:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMHOME_')],
     [sg.Text("Item Room:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMROOM_')],
@@ -108,8 +112,8 @@ layout1 = [
     [sg.Button("Remove Item", visible=False, button_color=('white', 'red'), key="removal")],
     [sg.Text("Seeing Inventory for:"),
      sg.Combo(generate_list(), readonly=True, enable_events=True, key="DROPDOWN_MENU2")],
-    [sg.Checkbox("Add Item", key='_ADDITEM_')],
-    [sg.Column(make_these_inputs_visible, visible=True)]  # Austin make this column visible when the checkbox above is ^ selected!
+    [sg.Checkbox("Add Item", key='_ADDITEM_', enable_events=True)],
+    [sg.Column(make_these_inputs_visible, visible=False, key="INPUTS")]
 ]
 
 layout2 = [
@@ -216,15 +220,29 @@ while True:
         else:
             window["_LIST_"].update(retrieve_household_items())
 
-    # Adds new item to data text file uppon clicking the "Add Item" button
+    # Adds new item to data text file upon clicking the "Add Item" button
     if event == "NEWITEM":
-        new_item_query = ", ".join([values["_ITEMNAME_"], values["_ITEMHOME_"], values["_ITEMROOM_"], values["_ITEMSTORED_"]])
         try:
-            add_item(new_item_query)
-            # UI message that says item was added successfully
+            # THESE IF STATEMENTS ARE TEMPERARY HOPEFULLY - COULDN'T FIGURE OUT THE LOGIC OPERATORS IN PYTHON SO I BRUTE FORCED IT
+            if values["_ITEMNAME_"] == "":
+                sg.popup_quick_message("Values must not be empty!", background_color="red")
+            elif values["_ITEMHOME_"] == "":
+                sg.popup_quick_message("Values must not be empty!", background_color="red")
+            elif values["_ITEMROOM_"] == "":
+                sg.popup_quick_message("Values must not be empty!", background_color="red")
+            elif values["_ITEMSTORED_"] == "":
+                sg.popup_quick_message("Values must not be empty!", background_color="red")
+            else:
+                new_item_query = ", ".join([values["_ITEMNAME_"], values["_ITEMHOME_"], values["_ITEMROOM_"], values["_ITEMSTORED_"]])
+                add_item(new_item_query)
+                sg.popup_quick_message("Item added successfully!", background_color="green")
+                window["_LIST_"].update(retrieve_household_items())
         except:
-            write("MAJOR MALFUNCTION")
-            # UI message that says Item wasn't added
+            sg.popup_quick_message("An error occured!")
 
-
-
+    # Visibility event for Add Item checkbox
+    if event == "_ADDITEM_":
+        if values["_ADDITEM_"]:
+            window["INPUTS"].update(visible=True)
+        else:
+            window["INPUTS"].update(visible=False)

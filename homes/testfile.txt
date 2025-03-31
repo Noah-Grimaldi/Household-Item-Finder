@@ -23,4 +23,3 @@ DVD, home 1, living room, Media cabinet second shelf
 spoon, home 1, kitchen, Drawer top right
 scarf, home 1, closet, Shelf middle left
 michael's shoes, home 1, michael's room, under the bed
-
