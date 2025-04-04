@@ -188,6 +188,8 @@ while True:
             window["DROPDOWN_MENU"].update(values=generate_list())
             window["DROPDOWN_MENU2"].update(values=generate_list())
         sg.popup_quick_message("Settings Saved!", background_color="green")
+        window["-COL1-"].update(visible=True)
+        window["-COL3-"].update(visible=False)
     if event == "_SETTINGS_":
         window["-COL1-"].update(visible=False)
         window["-COL3-"].update(visible=True)
