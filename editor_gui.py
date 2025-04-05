@@ -1,23 +1,12 @@
-from email.policy import default
-from logging import exception
-from os import write
-from xml.etree.ElementTree import indent
-
 import PySimpleGUI as sg
 import os
-import multiprocessing
 import io
-
-from PySimpleGUI import popup_no_border
 
 run_next_thread = False
 base64_image = b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAH+UExURQAAAP87If87If87If87If87If87If87If87If87If87ISUjJFAlIe5sFiUjJCMgIfU5IP87If46IPI5IKszH7lxFf93Fv90Fv9xF+pbGsMzINQ2IaovH62jC//xANnNBZGID6yKEfmAE/d4FL9JG9s2IKaRDvPOA+/FBX5UF89EHe04IF9YFf/wAPjeAe/DBL2VENA/Iek6IH9bFv7wAPvlAcKeC7Z1Eug5IKNlFO3gAv7xAPniAfDTA8N6EYstIMyUDuvdAvPNBJF7EfZcGeE3IPmQEfnsAP7oAfjWAvC3B/C1B/CzCIYrIP49IP63Cv+7Cf++Cf/BCNjMBfvoAO/CBdWkCfxBH6EvH6+lC/faAr6bC/CJELkyIP9IL/5zFsi2B/zpAPTRA+m3C7tQKHVTT/7sAPDFBGtZFftJHvw8I/k6IIpCG9WtCHwtH5k7HczABvzsAO7CBYNsE+BYGbIxILUxIOc4IP6UEcq+B/3tAPjfAvjeAtzHBaOZDZZ7EIpDG/5AH+5IJFk/KzYyHaCWDfrjAfHKA3dEGtw/H+o4IU9JGP3sAOK7BquCENc1IO44IIpYGfvnAfnhAc6RDXEvHn9CHOLVBPTUA6yTDfVzFMw0IGknIOPRBPDJBFw8GuVBHtVaGcilCcKQDMEzIPlnGMGLDYU8HMYzIP///xk1TTUAAAARdFJOUwAMWp+/Hg+PLc/vBoP2ARovY7xO3wAAAAFiS0dEqScPBgQAAAAHdElNRQfnCw0WKRQEGPwCAAABjklEQVQ4y2NggANGJmYWQSBgYWZiZMAErMyCSICZFU2ajV0QDbCzIctzcApiAE4OJHkuuLCQMJzJxYFFXlBEVExcQlJKGlkFG5L5MrJyQCCvoKikrAK0BeIOJPepqslBgLqGphbIpWD/IeS1dUCSunJ6+gaGELeAfIvwv5ExSN7E1MzcAh4ewPBDGGBpJSdnbWNrZ4/kWUYGJjjbwREo7+Ts4oocGkwIG9xMwBa4e3h6efv4IuxggbL8/AMCg4JBSkJCw8LhJrAwIJsXEQlUEBUdE4skBlYQB2HHJ8jJJSYlp6BECZIJqWlAV6RnZGZhV5CdYy1nHZWbhx6pcEfmF8hZFxYVl5SWlSPLs8C8WVEJDISq6prauvoGZAXMsIBqbGpuabWWk2tr7+hEDSh4UHd1y8n19Pb1ozqBER5ZEybqTpo8ZSqaE5kR0T1t+oyZs2aj+4EVnmDmzJ03fwG6NCTBgJPcwkWLl2BIw5IcMNEuXbYcUxqRrLl5eFfgk2fg4xcgkHEIZz3CmRd39gcA0k9l8LbQyIEAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjMtMTEtMTNUMjI6NDE6MjArMDA6MDC1A2E6AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIzLTExLTEzVDIyOjQxOjIwKzAwOjAwxF7ZhgAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyMy0xMS0xM1QyMjo0MToyMCswMDowMJNL+FkAAAAASUVORK5CYII='
 already_occured = False
 replace_this_home = ""
-
-if __name__ == '__main__':
-    # Pyinstaller fix because ultralytics references differently
-    multiprocessing.freeze_support()
+current_home = ""
 
 
 # TODO: Let the user at the beginning select what home they are editing, or if they don't have one, make invisible!
@@ -26,19 +15,29 @@ def cls():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
+def default_house_choice():
+    global current_home
+    if not os.listdir("homes"):
+        print("nothing in the directory")
+        pass
+    else:
+        latest_edited_file = max([f for f in os.scandir("homes")], key=lambda x: x.stat().st_mtime).name
+        current_home = "homes/" + latest_edited_file
+        print("directory has something!")
+        return latest_edited_file.replace(".txt", "")
+
+
 def retrieve_household_items():
-    with open("homes/testfile.txt", 'r') as textfile:
-        content = textfile.read().splitlines()
-        # print(content)
-    presentable = list(map(lambda x: x.split(','), content))
-    # for x in content:
-    #     print(x.replace(',', ' '))
-    # print(storage)
-    return content
+    try:
+        with open(current_home, 'r') as textfile:
+            content = textfile.read().splitlines()
+        return content
+    except:
+        return []
 
 
 def remove_item(line_user_removed):
-    with open("homes/testfile.txt", "r+") as f:
+    with open(current_home, "r+") as f:
         lines = f.readlines()
         f.seek(0)
         try:
@@ -52,7 +51,7 @@ def remove_item(line_user_removed):
 
 # Input is the search term - returns list that contains all matches - If there is an error, returns -1
 def search_for_item(item_query):
-    with open("homes/testfile.txt", 'r') as textfile:
+    with open(current_home, 'r') as textfile:
         lines = textfile.readlines()
         query_matches = []
         try:
@@ -64,10 +63,15 @@ def search_for_item(item_query):
             return -1
     return query_matches
 
+
 def add_item(new_item):
-    with open("homes/testfile.txt", 'a') as textfile:
+    print(current_home)
+    with open(current_home, 'r+') as textfile:
+        textfile.seek(0, io.SEEK_END)
+        print("this happened!")
         try:
-            textfile.write("\n" + new_item)
+            textfile.write(new_item + "\n")
+            print("this happened!")
         except:
             return -1
     textfile.close()
@@ -100,7 +104,8 @@ sg.theme('Black')
 
 make_these_inputs_visible = [
     [sg.Text("Item Name:"), sg.Push(), sg.Input(size=(20, 1), enable_events=True, key='_ITEMNAME_')],
-    [sg.Text("Item Home:"), sg.Push(), sg.Input(size=(20, 1), enable_events=True, key='_ITEMHOME_')],
+    [sg.Text("Item Home:"), sg.Push(),
+     sg.Combo(generate_list(), size=(18, 1), readonly=True, enable_events=True, key="_ITEMHOME_")],
     [sg.Text("Item Room:"), sg.Push(), sg.Input(size=(20, 1), enable_events=True, key='_ITEMROOM_')],
     [sg.Text("Item Storage Location:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMSTORED_')],
     [sg.Button("Add Item", visible=True, button_color=('white', 'green'), key="NEWITEM")]
@@ -110,11 +115,11 @@ layout1 = [
     [sg.Text("Search Bar"), sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_INPUT_'),
      sg.Image("settingsImage.png", key="_SETTINGS_", enable_events=True)],
     [sg.Listbox(retrieve_household_items(), size=(40, 10), enable_events=True, key='_LIST_', horizontal_scroll=True)],
-    [sg.Button("Remove Item", visible=False, button_color=('white', 'red'), key="removal")],
+    [sg.pin(sg.Button("Remove Item", visible=False, button_color=('white', 'red'), key="removal"))],
     [sg.Text("Seeing Inventory for:"),
-     sg.Combo(generate_list(), readonly=True, enable_events=True, key="DROPDOWN_MENU2")],
-    [sg.Checkbox("Add Item", key='_ADDITEM_', enable_events=True)],
-    [sg.Column(make_these_inputs_visible, visible=False, key="INPUTS")]
+     sg.Combo(generate_list(), readonly=True, enable_events=True, key="DROPDOWN_MENU2", default_value=default_house_choice())],
+    [sg.Checkbox("Add Item", key='_ADDITEM_', enable_events=True, visible=False)],
+    [sg.pin(sg.Column(make_these_inputs_visible, visible=False, key="INPUTS"))]
 ]
 
 layout2 = [
@@ -128,7 +133,8 @@ layout3 = [
     [sg.Text("How many homes/storage units do you have?:"),
      sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_NUMHOMES2_', default_text=amount_homes())],
     [sg.Text("Change home name for:"), sg.Combo(generate_list(), enable_events=True, key="DROPDOWN_MENU")],
-    [sg.Button('Save Changes', visible=True, key="SAVE_CHANGES")]  # Noemi, this is the save changes button, when this is pressed, change the visibility of the layouts!
+    [sg.Button('Save Changes', visible=True, key="SAVE_CHANGES")]
+    # Noemi, this is the save changes button, when this is pressed, change the visibility of the layouts!
 ]
 
 col1 = sg.Column(layout1, key="-COL1-", visible=False)
@@ -138,7 +144,7 @@ col3 = sg.Column(layout3, key="-COL3-", visible=False)
 layout = [[col1, col2, col3]]
 
 # Create the window
-window = sg.Window("Household Item Finder", layout, icon=base64_image, finalize=True, resizable=True)
+window = sg.Window("Household Item Finder", layout, icon=base64_image, finalize=True, resizable=False)
 
 if os.path.isfile("settings.txt"):
     window["-COL2-"].update(visible=False)
@@ -214,11 +220,14 @@ while True:
         # print(selected_item)
         remove_item(selected_item)
         window["_LIST_"].update(retrieve_household_items())
+        window["removal"].update(visible=False)
+        sg.popup_quick_message("Item Removed!", background_color="red")
     if event == sg.WINDOW_CLOSED:
         break
 
     # Search bar input event
-    if event == "_INPUT_":
+    if event == "_INPUT_" and values["_LIST_"] != []:
+        print(values["_LIST_"])
         query = values["_INPUT_"]
 
         if query:
@@ -230,23 +239,30 @@ while True:
     # Adds new item to data text file upon clicking the "Add Item" button
     if event == "NEWITEM":
         try:
-            # THESE IF STATEMENTS ARE TEMPERARY HOPEFULLY - COULDN'T FIGURE OUT THE LOGIC OPERATORS IN PYTHON SO I BRUTE FORCED IT
-            if values["_ITEMNAME_"] == "":
+            # THESE IF STATEMENTS ARE TEMPORARY HOPEFULLY - COULDN'T FIGURE OUT THE LOGIC OPERATORS IN PYTHON SO I BRUTE FORCED IT
+            if values["_ITEMNAME_"].strip() == "":
                 sg.popup_quick_message("Values must not be empty!", background_color="red")
-            elif values["_ITEMHOME_"] == "":
+            elif values["_ITEMHOME_"].strip() == "":
                 sg.popup_quick_message("Values must not be empty!", background_color="red")
-            elif values["_ITEMROOM_"] == "":
+            elif values["_ITEMROOM_"].strip() == "":
                 sg.popup_quick_message("Values must not be empty!", background_color="red")
-            elif values["_ITEMSTORED_"] == "":
+            elif values["_ITEMSTORED_"].strip() == "":
                 sg.popup_quick_message("Values must not be empty!", background_color="red")
             else:
-                new_item_query = ", ".join([values["_ITEMNAME_"], values["_ITEMHOME_"], values["_ITEMROOM_"], values["_ITEMSTORED_"]])
+                new_item_query = ", ".join(
+                    [values["_ITEMNAME_"], values["_ITEMHOME_"], values["_ITEMROOM_"], values["_ITEMSTORED_"]])
                 add_item(new_item_query)
                 sg.popup_quick_message("Item added successfully!", background_color="green")
                 window["_LIST_"].update(retrieve_household_items())
         except:
             sg.popup_quick_message("An error occured!")
-
+    if values["DROPDOWN_MENU2"] == "":
+        window["_ADDITEM_"].update(visible=False)
+    else:
+        window["_ADDITEM_"].update(visible=True)
+        current_home = "homes/" + values["DROPDOWN_MENU2"] + ".txt"
+        open(current_home, "w")
+        window["_LIST_"].update(retrieve_household_items())
     # Visibility event for Add Item checkbox
     if event == "_ADDITEM_":
         if values["_ADDITEM_"]:
