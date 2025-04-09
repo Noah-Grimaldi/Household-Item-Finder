@@ -7,9 +7,8 @@ base64_image = b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAIGNIUk0AAHomAAC
 already_occured = False
 replace_this_home = ""
 current_home = ""
+run_once = True  # delete this line after test
 
-
-# TODO: Let the user at the beginning select what home they are editing, or if they don't have one, make invisible!
 
 def cls():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -18,16 +17,15 @@ def cls():
 def default_house_choice():
     global current_home
     if not os.listdir("homes"):
-        print("nothing in the directory")
         pass
     else:
         latest_edited_file = max([f for f in os.scandir("homes")], key=lambda x: x.stat().st_mtime).name
         current_home = "homes/" + latest_edited_file
-        print("directory has something!")
         return latest_edited_file.replace(".txt", "")
 
 
 def retrieve_household_items():
+    global current_home
     try:
         with open(current_home, 'r') as textfile:
             content = textfile.read().splitlines()
@@ -65,16 +63,17 @@ def search_for_item(item_query):
 
 
 def add_item(new_item):
-    print(current_home)
-    with open(current_home, 'r+') as textfile:
+    set_home = "homes/" + values["_ITEMHOME_"] + ".txt"
+    if os.path.exists(set_home):
+        pass
+    else:
+        open(set_home, "w")
+    with open(set_home, 'r+') as textfile:
         textfile.seek(0, io.SEEK_END)
-        print("this happened!")
         try:
             textfile.write(new_item + "\n")
-            print("this happened!")
         except:
             return -1
-    textfile.close()
 
 
 def amount_homes():
@@ -82,6 +81,12 @@ def amount_homes():
         content = textfile.read().splitlines()
     textfile.close()
     return int(content[0].replace("Homes: ", ""))
+
+
+def change_num_homes():
+    with open("settings.txt", 'r+') as settings_file:
+        settings_file.write("Homes: " + values["_NUMHOMES2_"])
+        settings_file.close()
 
 
 def generate_list():
@@ -117,7 +122,8 @@ layout1 = [
     [sg.Listbox(retrieve_household_items(), size=(40, 10), enable_events=True, key='_LIST_', horizontal_scroll=True)],
     [sg.pin(sg.Button("Remove Item", visible=False, button_color=('white', 'red'), key="removal"))],
     [sg.Text("Seeing Inventory for:"),
-     sg.Combo(generate_list(), readonly=True, enable_events=True, key="DROPDOWN_MENU2", default_value=default_house_choice())],
+     sg.Combo(generate_list(), readonly=True, enable_events=True, key="DROPDOWN_MENU2",
+              default_value=default_house_choice())],
     [sg.Checkbox("Add Item", key='_ADDITEM_', enable_events=True, visible=False)],
     [sg.pin(sg.Column(make_these_inputs_visible, visible=False, key="INPUTS"))]
 ]
@@ -169,8 +175,10 @@ while True:
         replace_this_home = values["DROPDOWN_MENU"]
     if event == "SAVE_CHANGES":
         if replace_this_home.strip() == "":
+            change_num_homes()
             pass
         else:
+            change_num_homes()
             concise_home_path = "homes/" + replace_this_home + ".txt"
             with open("updated_names.txt", 'r+') as updated_names_file:
                 names_file_content = updated_names_file.readlines()
@@ -183,13 +191,11 @@ while True:
                         add_one_or_zero = 0
                     names_file_content[check_home_index + add_one_or_zero] = values["DROPDOWN_MENU"] + ".txt" + "\n"
                     change_filename_to = names_file_content[check_home_index + add_one_or_zero]
-                    print(change_filename_to)
                     if os.path.isfile(concise_home_path):
                         os.replace(concise_home_path, "homes/" + change_filename_to)
                     updated_names_file.seek(0)
                     updated_names_file.writelines(names_file_content)
                     updated_names_file.truncate()
-                    # TODO: some of this is malfunctioning- figure it out
                 except:
                     updated_names_file.seek(0, io.SEEK_END)
                     updated_names_file.write(replace_this_home + "\n")
@@ -217,7 +223,6 @@ while True:
     if event == "removal":
         selected_item = values['_LIST_']
         selected_item = ''.join(selected_item)
-        # print(selected_item)
         remove_item(selected_item)
         window["_LIST_"].update(retrieve_household_items())
         window["removal"].update(visible=False)
@@ -227,7 +232,6 @@ while True:
 
     # Search bar input event
     if event == "_INPUT_" and values["_LIST_"] != []:
-        print(values["_LIST_"])
         query = values["_INPUT_"]
 
         if query:
@@ -239,7 +243,6 @@ while True:
     # Adds new item to data text file upon clicking the "Add Item" button
     if event == "NEWITEM":
         try:
-            # THESE IF STATEMENTS ARE TEMPORARY HOPEFULLY - COULDN'T FIGURE OUT THE LOGIC OPERATORS IN PYTHON SO I BRUTE FORCED IT
             if values["_ITEMNAME_"].strip() == "":
                 sg.popup_quick_message("Values must not be empty!", background_color="red")
             elif values["_ITEMHOME_"].strip() == "":
@@ -261,7 +264,15 @@ while True:
     else:
         window["_ADDITEM_"].update(visible=True)
         current_home = "homes/" + values["DROPDOWN_MENU2"] + ".txt"
-        open(current_home, "w")
+        if os.path.exists(current_home):
+            pass
+        else:
+            open(current_home, "w")
+        if run_once:
+            window["_LIST_"].update(retrieve_household_items())
+            run_once = False
+        # print(values["_LIST_"])
+    if event == "DROPDOWN_MENU2":
         window["_LIST_"].update(retrieve_household_items())
     # Visibility event for Add Item checkbox
     if event == "_ADDITEM_":
