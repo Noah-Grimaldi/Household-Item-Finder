@@ -8,6 +8,7 @@ already_occured = False
 replace_this_home = ""
 current_home = ""
 run_once = True  # delete this line after test
+space_or_no = ""
 
 
 def cls():
@@ -83,10 +84,28 @@ def amount_homes():
     return int(content[0].replace("Homes: ", ""))
 
 
+def prevent_poor_inputs(which_input):
+    if values[which_input] and not values[which_input][-1].isdigit():
+        window[which_input].update(values[which_input][:-1])
+    try:
+        if 1 > int(values[which_input]) or int(values[which_input]) > 50:
+            window[which_input].update(values[which_input][:-1])
+            sg.popup("You can't do 0 and the max is 50 homes/storage units")
+    except:
+        pass
+
+
 def change_num_homes():
+    global space_or_no
+    if 1 <= int(values["_NUMHOMES2_"]) <= 9:
+        space_or_no = " "
+    else:
+        space_or_no = ""
     with open("settings.txt", 'r+') as settings_file:
-        settings_file.write("Homes: " + values["_NUMHOMES2_"])
+        settings_file.write("Homes: " + values["_NUMHOMES2_"] + space_or_no)
         settings_file.close()
+    window["DROPDOWN_MENU"].update(values=generate_list())
+    window["DROPDOWN_MENU2"].update(values=generate_list())
 
 
 def generate_list():
@@ -162,52 +181,50 @@ while True:
     if event == "_LIST_":
         window["removal"].update(visible=True)
     # it was here
+    if event == "_NUMHOMES2_":
+        prevent_poor_inputs("_NUMHOMES2_")
     if event == "_NUMHOMES_" and not os.path.isfile("settings.txt"):
-        if values["_NUMHOMES_"] and not values["_NUMHOMES_"][-1].isdigit():
-            window["_NUMHOMES_"].update(values["_NUMHOMES_"][:-1])
-        try:
-            if 1 > int(values["_NUMHOMES_"]) or int(values["_NUMHOMES_"]) > 50:
-                window["_NUMHOMES_"].update(values["_NUMHOMES_"][:-1])
-                sg.popup("You can't do 0 and the max is 50 homes/storage units")
-        except:
-            pass
+        prevent_poor_inputs("_NUMHOMES_")
     if event == "DROPDOWN_MENU":
         replace_this_home = values["DROPDOWN_MENU"]
     if event == "SAVE_CHANGES":
-        if replace_this_home.strip() == "":
-            change_num_homes()
-            pass
+        if values["_NUMHOMES2_"] == "":
+            sg.popup_quick_message("Value of homes/storage units should not be empty!", background_color="red")
         else:
-            change_num_homes()
-            concise_home_path = "homes/" + replace_this_home + ".txt"
-            with open("updated_names.txt", 'r+') as updated_names_file:
-                names_file_content = updated_names_file.readlines()
-                try:
+            if replace_this_home.strip() == "":
+                change_num_homes()
+                pass
+            else:
+                change_num_homes()
+                concise_home_path = "homes/" + replace_this_home + ".txt"
+                with open("updated_names.txt", 'r+') as updated_names_file:
+                    names_file_content = updated_names_file.readlines()
                     try:
-                        check_home_index = names_file_content.index(replace_this_home + "\n")
-                        add_one_or_zero = 1
+                        try:
+                            check_home_index = names_file_content.index(replace_this_home + "\n")
+                            add_one_or_zero = 1
+                        except:
+                            check_home_index = names_file_content.index(replace_this_home + ".txt" + "\n")
+                            add_one_or_zero = 0
+                        names_file_content[check_home_index + add_one_or_zero] = values["DROPDOWN_MENU"] + ".txt" + "\n"
+                        change_filename_to = names_file_content[check_home_index + add_one_or_zero]
+                        if os.path.isfile(concise_home_path):
+                            os.replace(concise_home_path, "homes/" + change_filename_to)
+                        updated_names_file.seek(0)
+                        updated_names_file.writelines(names_file_content)
+                        updated_names_file.truncate()
                     except:
-                        check_home_index = names_file_content.index(replace_this_home + ".txt" + "\n")
-                        add_one_or_zero = 0
-                    names_file_content[check_home_index + add_one_or_zero] = values["DROPDOWN_MENU"] + ".txt" + "\n"
-                    change_filename_to = names_file_content[check_home_index + add_one_or_zero]
-                    if os.path.isfile(concise_home_path):
-                        os.replace(concise_home_path, "homes/" + change_filename_to)
-                    updated_names_file.seek(0)
-                    updated_names_file.writelines(names_file_content)
-                    updated_names_file.truncate()
-                except:
-                    updated_names_file.seek(0, io.SEEK_END)
-                    updated_names_file.write(replace_this_home + "\n")
-                    updated_names_file.write(values["DROPDOWN_MENU"] + ".txt" + "\n")
-                    if os.path.isfile(concise_home_path):
-                        os.replace(concise_home_path, "homes/" + values["DROPDOWN_MENU"] + ".txt")
-            # change the name of the file to the new name!
-            window["DROPDOWN_MENU"].update(values=generate_list())
-            window["DROPDOWN_MENU2"].update(values=generate_list())
-        sg.popup_quick_message("Settings Saved!", background_color="green")
-        window["-COL1-"].update(visible=True)
-        window["-COL3-"].update(visible=False)
+                        updated_names_file.seek(0, io.SEEK_END)
+                        updated_names_file.write(replace_this_home + "\n")
+                        updated_names_file.write(values["DROPDOWN_MENU"] + ".txt" + "\n")
+                        if os.path.isfile(concise_home_path):
+                            os.replace(concise_home_path, "homes/" + values["DROPDOWN_MENU"] + ".txt")
+                # change the name of the file to the new name!
+                window["DROPDOWN_MENU"].update(values=generate_list())
+                window["DROPDOWN_MENU2"].update(values=generate_list())
+            sg.popup_quick_message("Settings Saved!", background_color="green")
+            window["-COL1-"].update(visible=True)
+            window["-COL3-"].update(visible=False)
     if event == "_SETTINGS_":
         window["-COL1-"].update(visible=False)
         window["-COL3-"].update(visible=True)
