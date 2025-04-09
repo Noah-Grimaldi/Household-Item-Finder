@@ -2,8 +2,10 @@ import platform
 import subprocess
 import os
 
+
 def is_macos():
     return platform.system() == "Darwin"
+
 
 def is_homebrew_installed():
     try:
@@ -12,12 +14,14 @@ def is_homebrew_installed():
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
+
 def is_ffmpeg_installed():
     try:
         subprocess.run(["ffmpeg", "-version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
+
 
 def install_homebrew():
     try:
@@ -31,6 +35,7 @@ def install_homebrew():
         print("Failed to install Homebrew.")
         exit(1)
 
+
 def install_ffmpeg():
     try:
         subprocess.run(["brew", "install", "ffmpeg"], check=True)
@@ -39,16 +44,17 @@ def install_ffmpeg():
         print("Failed to install FFmpeg.")
         exit(1)
 
+
 def main():
     if is_macos():
         print("You are on macOS.")
-        
+
         if not is_homebrew_installed():
             print("Homebrew is not installed. Installing Homebrew...")
             install_homebrew()
         else:
             print("Homebrew is already installed.")
-        
+
         if not is_ffmpeg_installed():
             print("FFmpeg is not installed. Installing FFmpeg...")
             install_ffmpeg()

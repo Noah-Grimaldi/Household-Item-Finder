@@ -7,7 +7,7 @@ base64_image = b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAIGNIUk0AAHomAAC
 already_occured = False
 replace_this_home = ""
 current_home = ""
-run_once = True  # delete this line after test
+run_once = True
 space_or_no = ""
 
 
@@ -106,6 +106,7 @@ def change_num_homes():
         settings_file.close()
     window["DROPDOWN_MENU"].update(values=generate_list())
     window["DROPDOWN_MENU2"].update(values=generate_list())
+    window["_ITEMHOME_"].update(values=generate_list())
 
 
 def generate_list():
@@ -124,12 +125,19 @@ def generate_list():
     return homes_list
 
 
+def update_default_inputs():
+    window["DROPDOWN_MENU"].update(values=generate_list())
+    window["_NUMHOMES2_"].update(value=amount_homes())
+    window["_ITEMHOME_"].update(values=generate_list())
+    window["DROPDOWN_MENU2"].update(values=generate_list())
+
+
 sg.theme('Black')
 
 make_these_inputs_visible = [
     [sg.Text("Item Name:"), sg.Push(), sg.Input(size=(20, 1), enable_events=True, key='_ITEMNAME_')],
     [sg.Text("Item Home:"), sg.Push(),
-     sg.Combo(generate_list(), size=(18, 1), readonly=True, enable_events=True, key="_ITEMHOME_")],
+     sg.Combo(values=[], size=(18, 1), readonly=True, enable_events=True, key="_ITEMHOME_")],
     [sg.Text("Item Room:"), sg.Push(), sg.Input(size=(20, 1), enable_events=True, key='_ITEMROOM_')],
     [sg.Text("Item Storage Location:"), sg.Input(size=(20, 1), enable_events=True, key='_ITEMSTORED_')],
     [sg.Button("Add Item", visible=True, button_color=('white', 'green'), key="NEWITEM")]
@@ -141,7 +149,7 @@ layout1 = [
     [sg.Listbox(retrieve_household_items(), size=(40, 10), enable_events=True, key='_LIST_', horizontal_scroll=True)],
     [sg.pin(sg.Button("Remove Item", visible=False, button_color=('white', 'red'), key="removal"))],
     [sg.Text("Seeing Inventory for:"),
-     sg.Combo(generate_list(), readonly=True, enable_events=True, key="DROPDOWN_MENU2",
+     sg.Combo(values=[], readonly=True, enable_events=True, key="DROPDOWN_MENU2",
               default_value=default_house_choice())],
     [sg.Checkbox("Add Item", key='_ADDITEM_', enable_events=True, visible=False)],
     [sg.pin(sg.Column(make_these_inputs_visible, visible=False, key="INPUTS"))]
@@ -156,10 +164,9 @@ layout2 = [
 layout3 = [
     [sg.Text("SETTINGS:")],
     [sg.Text("How many homes/storage units do you have?:"),
-     sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_NUMHOMES2_', default_text=amount_homes())],
-    [sg.Text("Change home name for:"), sg.Combo(generate_list(), enable_events=True, key="DROPDOWN_MENU")],
+     sg.Input(do_not_clear=True, size=(20, 1), enable_events=True, key='_NUMHOMES2_', default_text="")],
+    [sg.Text("Change home name for:"), sg.Combo(values=[], enable_events=True, key="DROPDOWN_MENU")],
     [sg.Button('Save Changes', visible=True, key="SAVE_CHANGES")]
-    # Noemi, this is the save changes button, when this is pressed, change the visibility of the layouts!
 ]
 
 col1 = sg.Column(layout1, key="-COL1-", visible=False)
@@ -174,13 +181,13 @@ window = sg.Window("Household Item Finder", layout, icon=base64_image, finalize=
 if os.path.isfile("settings.txt"):
     window["-COL2-"].update(visible=False)
     window["-COL1-"].update(visible=True)
+    update_default_inputs()
 
 # Event loop
 while True:
     event, values = window.read(timeout=200)
     if event == "_LIST_":
         window["removal"].update(visible=True)
-    # it was here
     if event == "_NUMHOMES2_":
         prevent_poor_inputs("_NUMHOMES2_")
     if event == "_NUMHOMES_" and not os.path.isfile("settings.txt"):
@@ -222,6 +229,7 @@ while True:
                 # change the name of the file to the new name!
                 window["DROPDOWN_MENU"].update(values=generate_list())
                 window["DROPDOWN_MENU2"].update(values=generate_list())
+                window["_ITEMHOME_"].update(values=generate_list())
             sg.popup_quick_message("Settings Saved!", background_color="green")
             window["-COL1-"].update(visible=True)
             window["-COL3-"].update(visible=False)
@@ -239,6 +247,8 @@ while True:
             file = open("settings.txt", "w+")
             file.write(f"Homes: {num_of_homes}")
             file.close()
+            update_default_inputs()
+            # UPDATE generate_list, amount_homes
     if event == "removal":
         selected_item = values['_LIST_']
         selected_item = ''.join(selected_item)
@@ -290,7 +300,6 @@ while True:
         if run_once:
             window["_LIST_"].update(retrieve_household_items())
             run_once = False
-        # print(values["_LIST_"])
     if event == "DROPDOWN_MENU2":
         window["_LIST_"].update(retrieve_household_items())
     # Visibility event for Add Item checkbox
